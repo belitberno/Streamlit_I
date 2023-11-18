@@ -1,0 +1,71 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import os
+import sys
+import streamlit as st
+
+sns.set() 
+
+base="dark"
+primaryColor="#ef2727"
+secondaryBackgroundColor="#013112"
+textColor="#f9f5f5"
+font="serif"
+
+
+@st.cache_data
+
+def plota_pivot_table(df, value, index, func, ylabel, xlabel, opcao='nada'):
+    if opcao == 'nada':
+        pd.pivot_table(df, values=value, index=index,aggfunc=func).plot(figsize=[15, 5])
+    elif opcao == 'unstack':
+        pd.pivot_table(df, values=value, index=index,aggfunc=func).unstack().plot(figsize=[15, 5])
+    elif opcao == 'sort':
+        pd.pivot_table(df, values=value, index=index,aggfunc=func).sort_values(value).plot(figsize=[15, 5])
+    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
+    st.pyplot(fig=plt)
+    return None
+
+st.set_page_config(page_title = 'SINASC Rondônia',
+                    page_icon='https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Bras%C3%A3o_de_Rond%C3%B4nia.svg/1200px-Bras%C3%A3o_de_Rond%C3%B4nia.svg.png',
+                    layout='wide')
+
+st.title('Análise SINASC - Nascidos Vivos de Rondônia 2019')
+st.header('Bem vindo(a) a aplicação de análise do SINASC referente ao estado brasileiro de Rondônia, os registros de nascimento são do ano de 2019.')
+
+st.subheader('Este relatório é destinado a relação dos nascimentos e fatores que podem influenciar, a partir desses relatórios conseguimos ver possiveis problemas sociais entre outros, caso tenha interesse em outros estados, diversos anos, até mesmo, maiores análises. Por favor, fazer o download do arquivo raiz no site do [SINASC]("http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinasc/cnv/nvbr.def").')
+
+
+sinasc = pd.read_csv("C:/Users/Belit/Downloads/input/SINASC_RO_2019.csv")
+sinasc.DTNASC = pd.to_datetime(sinasc.DTNASC)
+
+min_data = sinasc.DTNASC.min()
+max_data = sinasc.DTNASC.max()
+
+st.write(min_data)
+st.write(max_data)
+
+data_inicial = st.sidebar.date_input('Data inicial', 
+                value = min_data,
+                min_value = min_data,
+                max_value = max_data)
+data_final = st.sidebar.date_input('Data inicial', 
+                value = max_data,
+                min_value = min_data,
+                max_value = max_data)    
+
+st.sidebar.write('Data inicial = ', data_inicial)
+st.sidebar.write('Data inicial = ', data_final)
+
+sinasc  = sinasc[(sinasc['DTNASC'] <= pd.to_datetime(data_final)) & (sinasc['DTNASC'] >=pd.to_datetime(data_inicial) )]
+
+
+plota_pivot_table(sinasc, 'IDADEMAE', 'DTNASC', 'mean', 'média idade mãe por data', 'data nascimento')
+plota_pivot_table(sinasc, 'IDADEMAE', ['DTNASC', 'SEXO'], 'mean', 'media idade mae','data de nascimento','unstack')
+plota_pivot_table(sinasc, 'PESO', ['DTNASC', 'SEXO'], 'mean', 'media peso bebe','data de nascimento','unstack')
+plota_pivot_table(sinasc, 'PESO', 'ESCMAE', 'median', 'PESO mediano','escolaridade mae','sort')
+plota_pivot_table(sinasc, 'APGAR1', 'GESTACAO', 'mean', 'apgar1 medio','gestacao','sort')
+
+tab1, tab2 = st.tabs(["Tab 1", "Tab2"])
