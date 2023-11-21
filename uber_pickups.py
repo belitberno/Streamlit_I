@@ -98,3 +98,14 @@ t = np.linspace(0, seconds, seconds * sample_rate, False)
 # Generate a 440 Hz sine wave
 note_la = np.sin(frequency_la * t * 2 * np.pi)
 st.audio(note_la, sample_rate=sample_rate)
+
+#24 Input
+st.toast('Mr Stay-Puft')
+
+#25 Input
+st.echo()
+with st.echo():
+    st.write('FIM DA PAGINA')
+
+#26 Input
+st.file_uploader('File uploader')
